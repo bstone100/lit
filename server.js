@@ -49,6 +49,10 @@ const wss = new WebSocketServer({server});
 
 wss.on("connection", socket => {
     console.log("new socket connected");
+
+    socket.send(JSON.stringify({
+        type: "hello"
+    }));
 });
 
 

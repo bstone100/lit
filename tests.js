@@ -24,7 +24,7 @@ test("Probe the page served by the server", async () => {
         },
         {
             url: "/styles.css",
-            content: "color: red;"
+            content: "h1"
         },
         {
             url: "/index.js",
@@ -34,3 +34,40 @@ test("Probe the page served by the server", async () => {
 
     await Promise.all(checks.map(check => checkFile(check.url, check.content)));
 });
+
+test("probe the WebSocket server", async () => {
+    const ws = new WebSocket("ws://localhost:3000");
+
+    const waitForMessage = () => {
+        return new Promise((resolve, reject) => {
+            const id = setTimeout(reject, 1000);
+
+            ws.addEventListener("message", event => {
+                const data = JSON.parse(event.data);
+                clearTimeout(id);
+                resolve(data);
+            });
+        });
+    }
+
+    try {
+        const data = await waitForMessage();
+        assert.equal(data.type, "hello");
+    } catch (err) {
+        assert.ok(false);
+    }
+
+    ws.close();
+});
+
+
+
+
+
+
+
+
+
+
+
+
