@@ -1,5 +1,23 @@
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
+import { WebSocketServer, WebSocket } from "ws";
+import { watch } from "node:fs";
+
+const FILES_TO_SERVE = ["./index.html", "./index.js", "./styles.css"];
+
+// for now the web page will just reload
+// TODO: make the web page only reload the changed file
+FILES_TO_SERVE.forEach(file => {
+    watch(file, () => {
+        wss.clients.forEach(client => {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify({
+                    type: "hot_reload"
+                }));
+            }
+        });
+    });
+});
 
 const server = createServer(async (req, res) => {
     if (req.method === "GET") {
@@ -27,4 +45,30 @@ const server = createServer(async (req, res) => {
     res.end();
 });
 
+const wss = new WebSocketServer({server});
+
+wss.on("connection", socket => {
+    console.log("new socket connected");
+});
+
+
+
 server.listen(3000);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
