@@ -8,11 +8,27 @@
     <body>
         <main>
             <h1>Ben's Server</h1>
-            <p>This is my server.</p>
-            <label id="label_count"></label>
-            <button id="button_add">Add</button>
-            <button id="button_subtract">Subtract</button>
-            <button id="button_reset">Reset</button>
+            <section>
+                <h2>Counter</h2>
+                <p id="label_count"></p>
+                <button id="button_add">Add</button>
+                <button id="button_subtract">Subtract</button>
+                <button id="button_reset">Reset</button>
+            </section>
+            <section>
+                <h2>Chat</h2>
+                <!-- TODO: make the li item a web component with template -->
+                <ul id="ul_messages">
+                    <template id="template_message">
+                        <li class="li_message"></li>
+                    </template>
+                </ul>
+                <form id="form_message">
+                    <label for="textarea_message">Message:</label>
+                    <textarea id="textarea_message"></textarea>
+                    <input id="button_send" type="submit" value="Send">
+                </form>
+            </section>
         </main>
     </body>
 </html>

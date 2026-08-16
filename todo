@@ -13,3 +13,6 @@ Steps:
 5. Update tests to check all pages.
 6. Implement hot reload of page via WebSocket.
 7. Write tests for the WebSocket.
+8. Add functionality to make buttons on page work.
+9. Add a global chat to the server.
+    1. Write POST, PATCH, DELETE, GET and tests for all
