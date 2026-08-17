@@ -71,7 +71,7 @@ const server = createServer(async (req, res) => {
         // TODO: need to assign uuid to the message, save to memory, save it to disk, broadcast it to all clients
         // TODO: need to validate the request body
         data.id = randomUUID();
-        data.date_created = new Date(Date.now()).toISOString();
+        data.date_created = new Date().toISOString();
 
         messages.push(data);
 
