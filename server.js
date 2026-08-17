@@ -24,8 +24,6 @@ const saveMessages = async () => {
     await writeFile(MESSAGES_SAVE_FILE, JSON.stringify(messages, null, 2));
 }
 
-
-
 // for now the web page will just reload
 // TODO: make the web page only reload the changed file
 FILES_TO_SERVE.forEach(file => {
@@ -33,6 +31,15 @@ FILES_TO_SERVE.forEach(file => {
         broadcast({type: "hot_reload"});
     });
 });
+
+// TODO (LEARN): take lesson on how streams work in node and for..await..of
+const getRequestBody = async req => {
+    let body = "";
+    for await (const chunk of req) {
+        body += chunk;
+    }
+    return JSON.parse(body);
+};
 
 const server = createServer(async (req, res) => {
     if (req.method === "GET") {
@@ -57,18 +64,8 @@ const server = createServer(async (req, res) => {
     }
     if (req.method === "POST" && req.url === "/messages") {
         // need to get body of message
-        // TODO: need to associate message with an id
+        // TODO: need to associate message with a user id
         // for now it's anonymous
-
-        // TODO (LEARN): take lesson on how streams work in node and for..await..of
-        const getRequestBody = async req => {
-            let body = "";
-            for await (const chunk of req) {
-                body += chunk;
-            }
-            return JSON.parse(body);
-        };
-
         const data = await getRequestBody(req);
         // data.message
         // TODO: need to assign uuid to the message, save to memory, save it to disk, broadcast it to all clients
@@ -87,6 +84,61 @@ const server = createServer(async (req, res) => {
 
         res.writeHead(201, {"Content-Type": "application/json"});
         res.end(JSON.stringify(data));
+        return;
+    }
+    if (req.method === "GET" && req.url === "/messages") {
+        // send back the messages array with 200
+
+        res.writeHead(200, {"Content-Type": "application/json"});
+        res.end(JSON.stringify(messages));
+        return;
+    }
+    if (req.method === "DELETE" && req.url.includes("/messages/")) {
+        // get id from url, delete, 204
+        const id = req.url.split("/")[2];
+        const message = messages.find(message => message.id === id);
+        if (message) {
+            // TODO: see if better way to remove item
+            messages = messages.filter(message => message.id !== id);
+            await saveMessages();
+            broadcast({
+                type: "message_deleted",
+                id
+            });
+            res.writeHead(204);
+            res.end();
+            return;
+        }
+        res.writeHead(404, {"Content-Type": "text/plain"});
+        res.end("Message not found");
+        return;
+    }
+    if (req.method === "PATCH" && req.url.includes("/messages/")) {
+        const id = req.url.split("/")[2];
+        const message = messages.find(message => message.id === id);
+        if (!message) {
+            res.writeHead(404, {"Content-Type": "text/plain"});
+            res.end("Message not found");
+            return;
+        }
+        const data = await getRequestBody(req);
+        // TODO: verify data shape and new message
+        // TODO: verify that modifying message modifies messages
+        // historical
+        if (!message.versions) message.versions = [];
+        message.versions.push({
+            message: message.message,
+            date_created: message.date_modified ?? message.date_created
+        });
+        message.message = data.message; // current
+        message.date_modified = new Date().toISOString(); // current
+        await saveMessages();
+        broadcast({
+            type: "message_patched",
+            ...message
+        });
+        res.writeHead(200, {"Content-Type": "application/json"});
+        res.end(JSON.stringify(message));
         return;
     }
 

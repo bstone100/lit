@@ -41,14 +41,32 @@ form.addEventListener("submit", async event => {
             message: textarea.value
         })
     });
-    if (response.status === 200) {
+    if (response.status === 201) {
         form.reset();
     } else {
         // TODO: show message to user that the request failed
     }
 });
 
+const template = document.querySelector("#template_message");
+const list = document.querySelector("#ul_messages");
 
+const addMessage = message => {
+    // add a new <li> to the <ul> using the template
+    // TODO: extract the message item into a reusable web component
+    const clone = template.content.cloneNode(true);
+    const li = clone.querySelector("li");
+    li.textContent = message;
+    list.appendChild(li);
+}
+
+const loadMessages = async () => {
+    const response = await fetch("/messages");
+    const data = await response.json();
+
+    list.innerHTML = "";
+    data.forEach(item => addMessage(item.message));
+}
 
 const connect = () => {
     const ws = new WebSocket(`ws://${location.host}`);
@@ -64,12 +82,7 @@ const connect = () => {
             return;
         }
         if (data.type === "new_message") {
-            // add a new <li> to the <ul> using the template
-            const template = document.querySelector("#template_message");
-            const list = document.querySelector("#ul_messages");
-            const clone = template.content.cloneNode(true);
-            clone.textContent = data.message;
-            list.appendChild(clone);
+            addMessage(data.message);
         }
     });
 
@@ -82,3 +95,5 @@ const connect = () => {
 connect();
 
 render();
+
+await loadMessages();
