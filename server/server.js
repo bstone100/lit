@@ -5,6 +5,7 @@ import { watch } from "node:fs";
 import { randomUUID } from "node:crypto";
 
 
+// TODO: refactor so that we're serving all files in a chosen directory
 const FILES_TO_SERVE = ["../client/index.html", "../client/index.js", "../client/styles.css"];
 
 

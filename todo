@@ -19,6 +19,9 @@ Steps:
 11. Export start server functionality and make test file start the server.
 12. Expand tests to cover WebSocket behavior.
 13. Test file should use its own data file and perhaps each test should clear the file.
+14. Refactor file server and ensure it's secure.
+15. Write a fetch wrapper and refactor test file to use it.
+16. Start designing UI and breaking it up into a component library.
 
 Notes:
 - Should write pipeline that runs the integration tests and ensures they pass
