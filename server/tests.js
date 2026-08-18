@@ -1,12 +1,25 @@
-import { test } from "node:test";
+import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
+import { createServer, startServer, stopServer } from "./server.js";
 
-const BASE_URL = "http://localhost:3000";
+let server;
+let baseURL;
+
+before(async () => {
+    const { server: s } = await createServer("./test-messages.json", []);
+    server = s;
+    await startServer(server, 0);
+    baseURL = "http://localhost:" + server.address().port;
+});
+
+after(async () => {
+    await stopServer(server);
+});
 
 test("Probe the page served by the server", async () => {
 
     const checkFile = async (url, content) => {
-        const response = await fetch(`${BASE_URL}${url}`);
+        const response = await fetch(`${baseURL}${url}`);
         assert.equal(response.status, 200);
         const data = await response.text();
         assert.ok(data.includes(content));
@@ -36,7 +49,7 @@ test("Probe the page served by the server", async () => {
 });
 
 test("probe the WebSocket server", async () => {
-    const ws = new WebSocket("ws://localhost:3000");
+    const ws = new WebSocket(baseURL);
 
     const waitForMessage = () => {
         return new Promise((resolve, reject) => {
@@ -60,13 +73,47 @@ test("probe the WebSocket server", async () => {
     ws.close();
 });
 
+const postMessage = async () => {
+    const testMessage = {
+        message: "Hello Ben!"
+    };
+    const response = await fetch(`${baseURL}/messages`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(testMessage)
+    });
+    return response.json();
+}
+
+const deleteMessage = async (id) => {
+    await fetch(`${baseURL}/messages/${id}`, {
+        method: "DELETE"
+    });
+}
+
+const getMessages = async () => {
+    const response = await fetch(`${baseURL}/messages`);
+    return response.json();
+}
+
+const patchMessage = async (id, newMessage) => {
+    const response = await fetch(`${baseURL}/messages/${id}`, {
+        method: "PATCH",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            message: newMessage
+        })
+    });
+    return response.json();
+}
+
 test("test POST /messages is 201", async () => {
     // post the item
     const testMessage = {
         message: "Hello Ben!"
     };
 
-    const postResponse = await fetch("http://localhost:3000/messages", {
+    const postResponse = await fetch(`${baseURL}/messages`, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(testMessage)
@@ -87,39 +134,7 @@ test("test POST /messages is 201", async () => {
 });
 
 
-const postMessage = async () => {
-    const testMessage = {
-        message: "Hello Ben!"
-    };
-    const response = await fetch("http://localhost:3000/messages", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify(testMessage)
-    });
-    return response.json();
-}
 
-const deleteMessage = async (id) => {
-    await fetch(`http://localhost:3000/messages/${id}`, {
-        method: "DELETE"
-    });
-}
-
-const getMessages = async () => {
-    const response = await fetch("http://localhost:3000/messages");
-    return response.json();
-}
-
-const patchMessage = async (id, newMessage) => {
-    const response = await fetch(`http://localhost3000/messages/${id}`, {
-        method: "PATCH",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-            message: newMessage
-        })
-    });
-    return response.json();
-}
 
 test("test PATCH /messages/:id is 200", async () => {
     // post an item
@@ -129,7 +144,7 @@ test("test PATCH /messages/:id is 200", async () => {
         message: "This content is different from the previous content"
     };
 
-    const response = await fetch(`http://localhost:3000/messages/${message.id}`, {
+    const response = await fetch(`${baseURL}/messages/${message.id}`, {
         method: "PATCH",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(newMessage)
@@ -151,9 +166,33 @@ test("test PATCH /messages/:id is 200", async () => {
 });
 
 
+test("test DELETE /messages/:id is 204", async () => {
+    // make a message
+    const message = await postMessage();
 
+    // delete it
+    const response = await fetch(`${baseURL}/messages/${message.id}`, {
+       method: "DELETE"
+    });
+    assert.equal(response.status, 204);
 
+    // ensure it's not still there
+    const messages = await getMessages();
+    assert.ok(messages.find(m => m.id === message.id) === undefined);
+});
 
+test("test GET /messages is 200", async () => {
+    // add a message
+    const message = await postMessage();
+
+    const response = await fetch(`${baseURL}/messages`);
+    const data = await response.json();
+    assert.equal(response.status, 200);
+    assert.ok(Array.isArray(data));
+    assert.ok(data.find(m => m.id === message.id));
+
+    await deleteMessage(message.id);
+});
 
 
 

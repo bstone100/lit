@@ -16,6 +16,9 @@ Steps:
 8. Add functionality to make buttons on page work.
 9. Add a global chat to the server.
 10. Write POST, PATCH, DELETE, GET and write tests for all.
+11. Export start server functionality and make test file start the server.
+12. Expand tests to cover WebSocket behavior.
+13. Test file should use its own data file and perhaps each test should clear the file.
 
 Notes:
 - Should write pipeline that runs the integration tests and ensures they pass
