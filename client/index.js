@@ -1,33 +1,8 @@
 import * as messageStore from "./state/messages-state.js";
+import "./components/chat/chat-frame.js";
 
-const h1 = document.querySelector("h1");
-console.log(h1.textContent);
-
-const state = {
-    count: 0
-};
-
-const count = document.querySelector("#label_count");
-const add = document.querySelector("#button_add");
-const subtract = document.querySelector("#button_subtract");
-const reset = document.querySelector("#button_reset");
-
-const render = () => {
-    count.textContent = `Count: ${state.count}`;
-};
-
-add.addEventListener("click", () => {
-    state.count++;
-    render();
-});
-subtract.addEventListener("click", () => {
-    state.count--;
-    render();
-});
-reset.addEventListener("click", () => {
-    state.count = 0;
-    render();
-});
+// TODO: we need an abstraction that lets the message store notify web components that its data has changed
+// TODO: we need an abstraction that lets the web components notify the app of events
 
 const form = document.querySelector("#form_message");
 const textarea = document.querySelector("#textarea_message");
@@ -117,8 +92,6 @@ const connect = () => {
 }
 
 connect();
-
-render();
 
 await loadMessages();
 

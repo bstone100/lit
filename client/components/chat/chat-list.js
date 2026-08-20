@@ -2,6 +2,7 @@
 // web component for now, may be changed to lit later
 
 import * as messageStore from "../../state/messages-state.js";
+import "./chat-message.js";
 
 export default class ChatList extends HTMLElement {
     constructor() {

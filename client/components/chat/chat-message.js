@@ -21,6 +21,7 @@ export default class ChatMessage extends HTMLElement {
         // style should be defined here
         const message = messageStore.getMessage(this.dataset.id);
 
+        // TODO: do this safely, I think this is vulnerable to XSS attack
         this.shadowRoot.innerHTML = `
             <li>${message.message}</li>
         `;
