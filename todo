@@ -25,7 +25,23 @@ Steps:
 17. Write a WebSocket wrapper and refactor test file to monitor the socket throughout the tests.
 18. Ensure browser can get the shared modules.
 19. Write tests for the UI itself, meaning simulate inputs and clicks, I think.
+20. Server needs to assign a user id to each client and associate messages with users.
+21. Continuously refactor UI into a tree of components, should become continuously more declarative.
+22. Write client store for messages state.
+23. Update file server to support expanded client.
 
 Notes:
 - Should write pipeline that runs the integration tests and ensures they pass
 - Consider making the tests start and stop the server
+
+
+
+
+
+
+
+
+
+
+
+

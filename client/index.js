@@ -1,3 +1,5 @@
+import * as messageStore from "./state/messages-state.js";
+
 const h1 = document.querySelector("h1");
 console.log(h1.textContent);
 
@@ -64,6 +66,8 @@ const loadMessages = async () => {
     const response = await fetch("/messages");
     const data = await response.json();
 
+    messageStore.setMessages(data);
+
     list.innerHTML = "";
     data.forEach(item => addMessage(item.message));
 }
@@ -84,6 +88,26 @@ const connect = () => {
         if (data.type === "message_created") {
             addMessage(data.body.message);
         }
+
+        switch(data.type) {
+            case "hot_reload": {
+                location.reload();
+                return;
+            }
+            case "message_created": {
+                messageStore.addMessage(data.body);
+                break;
+            }
+            case "message_updated": {
+                messageStore.updateMessage(data.body.id, data.body);
+                break;
+            }
+            case "message_deleted": {
+                messageStore.deleteMessage(data.body.id);
+                break;
+            }
+        }
+
     });
 
     ws.addEventListener("close", () => {
@@ -97,3 +121,17 @@ connect();
 render();
 
 await loadMessages();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
