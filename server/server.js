@@ -113,8 +113,8 @@ export const createServer = async (saveFile, initialData) => {
             await saveMessages();
 
             broadcast({
-                type: "new_message",
-                ...data
+                type: "message_created",
+                body: data
             });
 
             res.writeHead(201, {"Content-Type": "application/json"});
@@ -132,7 +132,9 @@ export const createServer = async (saveFile, initialData) => {
                 await saveMessages();
                 broadcast({
                     type: "message_deleted",
-                    id
+                    body: {
+                        id
+                    }
                 });
                 res.writeHead(204);
                 res.end();
@@ -163,8 +165,8 @@ export const createServer = async (saveFile, initialData) => {
             message.date_modified = new Date().toISOString(); // current
             await saveMessages();
             broadcast({
-                type: "message_patched",
-                ...message
+                type: "message_updated",
+                body: message
             });
             res.writeHead(200, {"Content-Type": "application/json"});
             res.end(JSON.stringify(message));
@@ -183,8 +185,6 @@ export const createServer = async (saveFile, initialData) => {
 
     wss.on("connection", socket => {
         console.log("new socket connected");
-
-        sendMessage(socket, {type: "hello"});
     });
 
     // return server;

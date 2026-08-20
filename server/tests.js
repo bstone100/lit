@@ -1,18 +1,26 @@
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { createServer, startServer, stopServer } from "./server.js";
+import FetchWrapper from "../shared/fetch-wrapper.js";
+import WebSocketWrapper from "../shared/websocket-wrapper.js";
 
 let server;
 let baseURL;
+let API;
+let ws;
 
 before(async () => {
     const { server: s } = await createServer("./test-messages.json", []);
     server = s;
     await startServer(server, 0);
     baseURL = "http://localhost:" + server.address().port;
+    API = new FetchWrapper(baseURL);
+    ws = new WebSocketWrapper(`ws://localhost:${server.address().port}`);
+    await ws.connect();
 });
 
 after(async () => {
+    await ws.disconnect();
     await stopServer(server);
 });
 
@@ -48,63 +56,24 @@ test("Probe the page served by the server", async () => {
     await Promise.all(checks.map(check => checkFile(check.url, check.content)));
 });
 
-test("probe the WebSocket server", async () => {
-    const ws = new WebSocket(baseURL);
-
-    const waitForMessage = () => {
-        return new Promise((resolve, reject) => {
-            const id = setTimeout(reject, 1000);
-
-            ws.addEventListener("message", event => {
-                const data = JSON.parse(event.data);
-                clearTimeout(id);
-                resolve(data);
-            });
-        });
-    }
-
-    try {
-        const data = await waitForMessage();
-        assert.equal(data.type, "hello");
-    } catch (err) {
-        assert.ok(false);
-    }
-
-    ws.close();
-});
-
 const postMessage = async () => {
-    const testMessage = {
+    return API.post("/messages", {
         message: "Hello Ben!"
-    };
-    const response = await fetch(`${baseURL}/messages`, {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify(testMessage)
     });
-    return response.json();
 }
 
 const deleteMessage = async (id) => {
-    await fetch(`${baseURL}/messages/${id}`, {
-        method: "DELETE"
-    });
+    return API.delete(`/messages/${id}`);
 }
 
 const getMessages = async () => {
-    const response = await fetch(`${baseURL}/messages`);
-    return response.json();
+    return API.get("/messages");
 }
 
-const patchMessage = async (id, newMessage) => {
-    const response = await fetch(`${baseURL}/messages/${id}`, {
-        method: "PATCH",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-            message: newMessage
-        })
+const patchMessage = async (id) => {
+    return API.patch(`/messages/${id}`, {
+        message: "Ben, hi!"
     });
-    return response.json();
 }
 
 test("test POST /messages is 201", async () => {
@@ -130,10 +99,16 @@ test("test POST /messages is 201", async () => {
     assert.equal(foundMessage.message, testMessage.message);
 
     // delete the item
-    await deleteMessage();
+    await deleteMessage(id);
 });
 
+test("WebSocket: server should broadcast message_created event with body equal to POST /messages response", async () => {
+    const [ fetchData, wsData ] = await Promise.all([ postMessage(), ws.expectBroadcast("message_created") ]);
 
+    assert.deepEqual(fetchData, wsData);
+
+    await deleteMessage(fetchData.id);
+});
 
 
 test("test PATCH /messages/:id is 200", async () => {
@@ -165,6 +140,15 @@ test("test PATCH /messages/:id is 200", async () => {
     await deleteMessage(message.id);
 });
 
+test("WebSocket: server should broadcast message_updated with body equal to PATCH /messages/:id response", async () => {
+    const message = await postMessage();
+
+    const [ fetchData, wsData ] = await Promise.all([ patchMessage(message.id), ws.expectBroadcast("message_updated")]);
+
+    assert.deepEqual(fetchData, wsData);
+
+    await deleteMessage(message.id);
+});
 
 test("test DELETE /messages/:id is 204", async () => {
     // make a message
@@ -179,6 +163,14 @@ test("test DELETE /messages/:id is 204", async () => {
     // ensure it's not still there
     const messages = await getMessages();
     assert.ok(messages.find(m => m.id === message.id) === undefined);
+});
+
+test("WebSocket: server should broadcast message_deleted alongside DELETE /messages/:id", async () => {
+    const message = await postMessage();
+
+    const [ fetchData, wsData ] = await Promise.all([ deleteMessage(message.id), ws.expectBroadcast("message_deleted")]);
+
+    assert.equal(wsData.id, message.id);
 });
 
 test("test GET /messages is 200", async () => {

@@ -81,8 +81,8 @@ const connect = () => {
             location.reload();
             return;
         }
-        if (data.type === "new_message") {
-            addMessage(data.message);
+        if (data.type === "message_created") {
+            addMessage(data.body.message);
         }
     });
 

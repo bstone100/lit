@@ -22,6 +22,9 @@ Steps:
 14. Refactor file server and ensure it's secure.
 15. Write a fetch wrapper and refactor test file to use it.
 16. Start designing UI and breaking it up into a component library.
+17. Write a WebSocket wrapper and refactor test file to monitor the socket throughout the tests.
+18. Ensure browser can get the shared modules.
+19. Write tests for the UI itself, meaning simulate inputs and clicks, I think.
 
 Notes:
 - Should write pipeline that runs the integration tests and ensures they pass
