@@ -19,6 +19,17 @@ export default class ChatMessage extends HTMLElement {
         // need to be notified when the message changes
         // the message store should notify us here
         // style should be defined here
+
+        messageStore.registerCallback("messageUpdated", this, this.messageUpdatedCallback);
+
+        this.fullRender();
+    }
+
+    disconnectedCallback() {
+        messageStore.removeAllCallbacks(this);
+    }
+
+    fullRender() {
         const message = messageStore.getMessage(this.dataset.id);
 
         // TODO: do this safely, I think this is vulnerable to XSS attack
@@ -26,6 +37,18 @@ export default class ChatMessage extends HTMLElement {
             <li>${message.message}</li>
         `;
     }
+
+    messageUpdatedCallback() {
+        // get the new content and update the <li> directly
+
+        const message = messageStore.getMessage(this.dataset.id);
+
+        const li = this.shadowRoot.querySelector("li");
+
+        li.textContent = message.message;
+    }
+
+
 }
 
 window.customElements.define("chat-message", ChatMessage);

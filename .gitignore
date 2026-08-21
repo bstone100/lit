@@ -1,3 +1,4 @@
 node_modules/
 messages.json
 server/test-messages.json
+scratch.js

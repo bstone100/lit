@@ -33,18 +33,11 @@ const broadcastWSS = (wss, data) => {
 // TODO: make the web page only reload the changed file
 // TODO: need to set up hot reload for everything underneath served files
 export const startHotReload = wss => {
-    let watchers = [];
-    FILES_TO_SERVE.forEach(file => {
-        const watcher = watch(file, () => {
-            broadcastWSS(wss, {type: "hot_reload"});
-        });
-        watchers.push(watcher);
-    });
-    return watchers;
+    return watch(DIRECTORY_TO_SERVE, { recursive: true }, () => broadcastWSS(wss, { type: "hot_reload" }));
 }
 
-export const stopHotReload = watchers => {
-    watchers.forEach(watcher => watcher.close());
+export const stopHotReload = watcher => {
+    watcher.close();
 }
 
 export const createServer = async (saveFile, initialData) => {
@@ -86,6 +79,20 @@ export const createServer = async (saveFile, initialData) => {
             res.end(JSON.stringify(messages));
             return;
         }
+        if (req.method === "GET" && req.url.includes("/messages/")) {
+            const id = req.url.split("/")[2];
+            const message = messages.find(m => m.id === id);
+
+            if (!message) {
+                res.writeHead(404, {"Content-Type": "text/plain"});
+                res.end("Message not found");
+                return;
+            }
+
+            res.writeHead(200, {"Content-Type": "application/json"});
+            res.end(JSON.stringify(message));
+            return;
+        }
         if (req.method === "GET") {
 
             let requestedPath = path.join(DIRECTORY_TO_SERVE, req.url);
@@ -102,9 +109,6 @@ export const createServer = async (saveFile, initialData) => {
                 res.end();
                 return;
             }
-
-            // ensure file exists
-
 
             const pathToExt = p => {
                 const ext = path.parse(p).ext;
@@ -128,35 +132,6 @@ export const createServer = async (saveFile, initialData) => {
                 res.end(err.message);
                 return;
             }
-
-
-
-
-
-
-            //
-            // const urlToPath = url => {
-            //     return FILES_TO_SERVE.find(file => file.endsWith(url));
-            // }
-            //
-            // if (req.url === "/" || req.url === "/index.html") {
-            //     const data = await readFile(urlToPath("/index.html"), "utf-8");
-            //     res.writeHead(200, {"Content-Type": "text/html"});
-            //     res.end(data);
-            //     return;
-            // }
-            // if (req.url === "/index.js") {
-            //     const data = await readFile(urlToPath(req.url), "utf-8");
-            //     res.writeHead(200, {"Content-Type": "text/javascript"});
-            //     res.end(data);
-            //     return;
-            // }
-            // if (req.url === "/styles.css") {
-            //     const data = await readFile(urlToPath(req.url), "utf-8");
-            //     res.writeHead(200, {"Content-Type": "text/css"});
-            //     res.end(data);
-            //     return;
-            // }
         }
         if (req.method === "POST" && req.url === "/messages") {
             // TODO: need to associate message with a user id

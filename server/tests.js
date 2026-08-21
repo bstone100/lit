@@ -49,7 +49,7 @@ test("Probe the page served by the server", async () => {
         },
         {
             url: "/index.js",
-            content: "document.querySelector"
+            content: "connect"
         }
     ];
 
