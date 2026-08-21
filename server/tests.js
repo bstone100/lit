@@ -1,8 +1,8 @@
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { createServer, startServer, stopServer } from "./server.js";
-import FetchWrapper from "../shared/fetch-wrapper.js";
-import WebSocketWrapper from "../shared/websocket-wrapper.js";
+import FetchWrapper from "../client/shared/fetch-wrapper.js";
+import WebSocketWrapper from "../client/shared/websocket-wrapper.js";
 
 let server;
 let baseURL;
@@ -10,7 +10,7 @@ let API;
 let ws;
 
 before(async () => {
-    const { server: s } = await createServer("./test-messages.json", []);
+    const { server: s } = await createServer("./server/test-messages.json", []);
     server = s;
     await startServer(server, 0);
     baseURL = "http://localhost:" + server.address().port;

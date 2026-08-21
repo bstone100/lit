@@ -29,6 +29,7 @@ Steps:
 21. Continuously refactor UI into a tree of components, should become continuously more declarative.
 22. Write client store for messages state.
 23. Update file server to support expanded client.
+24. Refactor such that expected cwd is project root.
 
 Notes:
 - Should write pipeline that runs the integration tests and ensures they pass

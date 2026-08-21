@@ -1,5 +1,6 @@
 import * as messageStore from "./state/messages-state.js";
 import "./components/chat/chat-frame.js";
+import WebSocketWrapper from "./shared/websocket-wrapper.js";
 
 // TODO: we need an abstraction that lets the message store notify web components that its data has changed
 // TODO: we need an abstraction that lets the web components notify the app of events
