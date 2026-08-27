@@ -4,6 +4,7 @@
 // will write component first as a web component and then refactor to lit
 
 import * as messageStore from "../../state/messages-state.js";
+import FetchWrapper from "../../shared/fetch-wrapper.js"
 
 export default class ChatMessage extends HTMLElement {
     constructor() {
@@ -12,14 +13,6 @@ export default class ChatMessage extends HTMLElement {
     }
 
     connectedCallback() {
-        // should get message id from attribute
-        // then get message object from store
-        // then need to construct html and set the innerHTML of the shadow root to it
-        // reach into a client side messages store and extract the message object
-        // need to be notified when the message changes
-        // the message store should notify us here
-        // style should be defined here
-
         messageStore.registerCallback("messageUpdated", this, this.messageUpdatedCallback);
 
         this.fullRender();
@@ -34,8 +27,19 @@ export default class ChatMessage extends HTMLElement {
 
         // TODO: do this safely, I think this is vulnerable to XSS attack
         this.shadowRoot.innerHTML = `
-            <li>${message.message}</li>
+            <li>
+                ${message.message}
+                <button>Delete</button>
+            </li>
         `;
+
+        const button = this.shadowRoot.querySelector("button");
+
+        button.addEventListener("click", () => this.handleDelete());
+    }
+
+    async handleDelete() {
+        await new FetchWrapper("").delete(`/messages/${this.dataset.id}`);
     }
 
     messageUpdatedCallback() {

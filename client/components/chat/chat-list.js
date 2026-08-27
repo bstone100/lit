@@ -13,14 +13,8 @@ export default class ChatList extends HTMLElement {
 
     // called by the browser when this is added to the DOM
     connectedCallback() {
-        // get the list of messages
         // note that for now there is only one list of messages
         // in the future there will be multiple lists, each with their own id
-
-        // TODO: we need to be notified here when messages changes length or order
-        // we do not need to be notified here when an individual message changes
-
-        // we want the message store to basically call our callbacks here
 
         // TODO: refactor to use addEventListener
         messageStore.registerCallback("messagesReset", this, this.messagesResetCallback);

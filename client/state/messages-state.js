@@ -66,7 +66,7 @@ export const deleteMessage = id => {
 
     if (index !== -1) {
         messages.splice(index, 1);
-        executeCallbacks("messageRemoved", id);
+        executeCallbacks("messageDeleted", id);
     }
 }
 

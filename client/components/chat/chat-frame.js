@@ -10,8 +10,17 @@ export default class ChatFrame extends HTMLElement {
 
     connectedCallback() {
         this.shadowRoot.innerHTML = `
-            <chat-list></chat-list>
-            <chat-input></chat-input>
+            <style>
+                div {
+                    border: 2px dashed lightblue;
+                    border-radius: 10px;
+                    padding: 16px;
+                }
+            </style>
+            <div>
+                <chat-list></chat-list>
+                <chat-input></chat-input>
+            </div>
         `;
     }
 }

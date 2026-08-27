@@ -24,20 +24,28 @@ export default class ChatInput extends HTMLElement {
     fullRender() {
         this.shadowRoot.innerHTML = `
             <form>
-                <textarea></textarea>
-                <input type="submit" value="Send">
+                <input type="text" name="message" required>
+                <input type="submit" value="Send" disabled>
             </form>
         `;
 
         const form = this.shadowRoot.querySelector("form");
-        const textarea = this.shadowRoot.querySelector("textarea");
+        const input = form.querySelector(`input[type="text"]`);
+        const button = form.querySelector(`input[type="submit"]`);
 
         form.addEventListener("submit", async event => {
             event.preventDefault();
 
-            await new FetchWrapper("").post("/messages", { message: textarea.value});
+            const formData = new FormData(form);
 
-            textarea.value = "";
+            await new FetchWrapper("").post("/messages", { message: formData.get("message")});
+
+            input.value = "";
+            button.setAttribute("disabled", "disabled");
+        });
+
+        input.addEventListener("input", () => {
+            input.value.length > 0 ? button.removeAttribute("disabled") : button.setAttribute("disabled", "disabled");
         });
     }
 }
