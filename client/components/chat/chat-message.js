@@ -27,7 +27,15 @@ export default class ChatMessage extends HTMLElement {
 
         // TODO: do this safely, I think this is vulnerable to XSS attack
         this.shadowRoot.innerHTML = `
+            <style>
+                li {
+                    border: 3px dotted lightgreen;
+                    border-radius: 5px;
+                    margin: 5px 0;
+                }
+            </style>
             <li>
+                <input type="checkbox">
                 ${message.message}
                 <button>Delete</button>
             </li>

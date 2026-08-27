@@ -23,6 +23,13 @@ export default class ChatInput extends HTMLElement {
 
     fullRender() {
         this.shadowRoot.innerHTML = `
+            <style>
+                form {
+                    border: 2px dashed orange;
+                    border-radius: 5px;
+                    padding: 10px;
+                }
+            </style>
             <form>
                 <input type="text" name="message" required>
                 <input type="submit" value="Send" disabled>

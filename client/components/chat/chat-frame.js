@@ -1,6 +1,7 @@
 // this is a ui component that holds the different pieces of the chat ui
 import "./chat-list.js";
 import "./chat-input.js";
+import "./chat-control-bar.js"
 
 export default class ChatFrame extends HTMLElement {
     constructor() {
@@ -18,6 +19,7 @@ export default class ChatFrame extends HTMLElement {
                 }
             </style>
             <div>
+                <chat-control-bar></chat-control-bar>
                 <chat-list></chat-list>
                 <chat-input></chat-input>
             </div>
