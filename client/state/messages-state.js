@@ -16,6 +16,10 @@ class MessagesState extends CallbackMachine {
         return this.#messages;
     }
 
+    get length() {
+        return this.#messages.length;
+    }
+
     getMessage(id) {
         return this.#messages.find(message => message.id === id);
     }

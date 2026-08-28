@@ -14,19 +14,22 @@ export default class ChatMessage extends HTMLElement {
     }
 
     connectedCallback() {
-        messagesState.registerCallback("messageUpdated", this, this.messageUpdatedCallback);
+        messagesState.registerCallback("messageUpdated", this, this.#messageUpdatedCallback);
+
+        selectedState.registerCallback("selectAllExecuted", this, this.#selectAllCallback);
+        selectedState.registerCallback("deselectAllExecuted", this, this.#deselectAllCallback);
 
         this.fullRender();
     }
 
     disconnectedCallback() {
         messagesState.removeAllCallbacks(this);
+        selectedState.removeAllCallbacks(this);
     }
 
     fullRender() {
         const message = messagesState.getMessage(this.dataset.id);
 
-        // TODO: do this safely, I think this is vulnerable to XSS attack
         this.shadowRoot.innerHTML = `
             <style>
                 li {
@@ -36,40 +39,52 @@ export default class ChatMessage extends HTMLElement {
                 }
             </style>
             <li>
-                <input type="checkbox">
-                ${message.message}
+                <!-- create checkbox with correct selected state -->
+                <input type="checkbox" ${selectedState.isSelected(this.dataset.id) ? "checked" : ""}>
+                <span></span>
                 <button>Delete</button>
             </li>
         `;
 
-        const button = this.shadowRoot.querySelector("button");
+        this.span.textContent = message.message;
 
-        button.addEventListener("click", () => this.handleDelete());
+        this.deleteButton.addEventListener("click", () => this.handleDelete());
 
-        const checkbox = this.shadowRoot.querySelector("input");
-
-        checkbox.addEventListener("change", () => {
+        this.checkbox.addEventListener("change", () => {
             selectedState.toggle(this.dataset.id);
         });
+    }
+
+    get checkbox() {
+        return this.shadowRoot.querySelector("input");
+    }
+
+    get deleteButton() {
+        return this.shadowRoot.querySelector("button");
+    }
+
+    get span() {
+        return this.shadowRoot.querySelector("span");
     }
 
     async handleDelete() {
         await new FetchWrapper("").delete(`/messages/${this.dataset.id}`);
     }
 
-    messageUpdatedCallback(id) {
+    #messageUpdatedCallback(id) {
         if (id !== this.dataset.id) return;
 
-        // get the new content and update the <li> directly
-
         const message = messagesState.getMessage(this.dataset.id);
-
-        const li = this.shadowRoot.querySelector("li");
-
-        li.textContent = message.message;
+        this.span.textContent = message.message;
     }
 
+    #selectAllCallback() {
+        this.checkbox.checked = true;
+    }
 
+    #deselectAllCallback() {
+        this.checkbox.checked = false;
+    }
 }
 
 window.customElements.define("chat-message", ChatMessage);

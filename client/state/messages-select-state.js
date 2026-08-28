@@ -13,20 +13,51 @@ class MessagesSelectState extends CallbackMachine {
         messagesState.registerCallback("messagesDeleted", this, this.#handleMessagesDeleted);
     }
 
-    get selected() {
-        return this.#selected;
+    getSelected() {
+        return [...this.#selected];
+    }
+
+    get size() {
+        return this.#selected.size;
+    }
+
+    isSelected(id) {
+        return this.#selected.has(id);
+    }
+
+    selectAll() {
+        const messages = messagesState.getMessages();
+        let changed = false;
+        for (const message of messages) {
+            if (!this.#selected.has(message.id)) {
+                this.#selected.add(message.id);
+                changed = true;
+            }
+        }
+        if (changed) {
+            this.executeCallbacks("selectionChanged");
+            this.executeCallbacks("selectAllExecuted");
+        }
+    }
+
+    deselectAll() {
+        if (this.#selected.size > 0) {
+            this.#selected.clear();
+            this.executeCallbacks("selectionChanged");
+            this.executeCallbacks("deselectAllExecuted");
+        }
     }
 
     select(id) {
-        this.#selected.add(id);
-        this.executeCallbacks("messageSelected", id);
-        this.executeCallbacks("selectionChanged");
+        if (!this.#selected.has(id)) {
+            this.#selected.add(id);
+            this.executeCallbacks("selectionChanged");
+        }
     }
 
     deselect(id) {
         if (this.#selected.has(id)) {
             this.#selected.delete(id);
-            this.executeCallbacks("messageDeselected", id);
             this.executeCallbacks("selectionChanged");
         }
     }
