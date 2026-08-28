@@ -30,6 +30,13 @@ Steps:
 22. Write client store for messages state.
 23. Update file server to support expanded client.
 24. Refactor such that expected cwd is project root.
+25. Implement DOM virtualization such that there are DOM nodes only for visible messages.
+26. Implement windowing such that only visible messages are in browser memory.
+27. Implement pagination such that only visible messages are requested from the server and queried from disk.
+28. Implement deep skeleton loading pattern for each component.
+29. Refactor database into something that supports pagination queries.
+30. Write tests for all new endpoints.
+31. Refactor server and break it down into different files by functionality.
 
 Notes:
 - Should write pipeline that runs the integration tests and ensures they pass

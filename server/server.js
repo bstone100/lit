@@ -5,20 +5,14 @@ import { watch } from "node:fs";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 
-
-// TODO: refactor so that we're serving all files in a chosen directory
-const FILES_TO_SERVE = ["../client/index.html", "../client/index.js", "../client/styles.css"];
-
 // algorithm for a safe file server:
 // 1. construct the valid paths using path.join on process.cwd() and the relative dir paths
 // 2. construct the query path using path.join on process.cwd() and the query path (decoded)
 // 3. ensure that the query path starts with a valid path
-// const DIRECTORIES_TO_SERVE = ["../client, ../shared"];
 
 // NOTE: process.cwd should be project root
 const DIRECTORY_TO_SERVE = path.join(process.cwd(), "/client/");
 const DEFAULT_FILE = path.join(DIRECTORY_TO_SERVE, "/index.html");
-
 
 const sendMessage = (client, data) => {
     if (client && client.readyState === WebSocket.OPEN) {
