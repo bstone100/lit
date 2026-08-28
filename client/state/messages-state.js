@@ -57,7 +57,7 @@ export const updateMessage = (id, newMessage) => {
 
     if (index !== -1) {
         messages[index] = newMessage;
-        executeCallbacks("messageUpdated");
+        executeCallbacks("messageUpdated", id);
     }
 }
 
@@ -70,6 +70,13 @@ export const deleteMessage = id => {
     }
 }
 
+export const deleteMessages = ids => {
+    const setToDelete = new Set(ids);
+
+    messages = messages.filter(message => !setToDelete.has(message.id));
+
+    executeCallbacks("messagesDeleted", setToDelete);
+}
 
 
 

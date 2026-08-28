@@ -178,6 +178,21 @@ export const createServer = async (saveFile, initialData) => {
             res.end("Message not found");
             return;
         }
+        if (req.method === "DELETE" && req.url === "/messages") {
+            const data = await getRequestBody(req); // [id, id, id]
+
+            const setToDelete = new Set(data);
+            messages = messages.filter(message => !setToDelete.has(message.id));
+
+            await saveMessages();
+            broadcast({
+                type: "messages_deleted",
+                body: data
+            });
+            res.writeHead(204);
+            res.end();
+            return;
+        }
         if (req.method === "PATCH" && req.url.includes("/messages/")) {
             const id = req.url.split("/")[2];
             const message = messages.find(message => message.id === id);

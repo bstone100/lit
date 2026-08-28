@@ -5,6 +5,7 @@
 
 import * as messageStore from "../../state/messages-state.js";
 import FetchWrapper from "../../shared/fetch-wrapper.js"
+import { selectedState } from "../../state/messages-select-state.js";
 
 export default class ChatMessage extends HTMLElement {
     constructor() {
@@ -44,13 +45,21 @@ export default class ChatMessage extends HTMLElement {
         const button = this.shadowRoot.querySelector("button");
 
         button.addEventListener("click", () => this.handleDelete());
+
+        const checkbox = this.shadowRoot.querySelector("input");
+
+        checkbox.addEventListener("change", () => {
+            selectedState.toggle(this.dataset.id);
+        });
     }
 
     async handleDelete() {
         await new FetchWrapper("").delete(`/messages/${this.dataset.id}`);
     }
 
-    messageUpdatedCallback() {
+    messageUpdatedCallback(id) {
+        if (id !== this.dataset.id) return;
+
         // get the new content and update the <li> directly
 
         const message = messageStore.getMessage(this.dataset.id);

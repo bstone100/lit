@@ -37,6 +37,10 @@ const connect = () => {
                 messageStore.deleteMessage(data.body.id);
                 break;
             }
+            case "messages_deleted": {
+                messageStore.deleteMessages(data.body);
+                break;
+            }
         }
 
     });

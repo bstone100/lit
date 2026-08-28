@@ -20,6 +20,7 @@ export default class ChatList extends HTMLElement {
         messageStore.registerCallback("messagesReset", this, this.messagesResetCallback);
         messageStore.registerCallback("messageAdded", this, this.messageAddedCallback);
         messageStore.registerCallback("messageDeleted", this, this.messageDeletedCallback);
+        messageStore.registerCallback("messagesDeleted", this, this.messagesDeletedCallback);
 
         this.fullRender();
     }
@@ -63,6 +64,14 @@ export default class ChatList extends HTMLElement {
         const chatMessage = this.shadowRoot.querySelector(`[data-id="${id}"]`);
 
         chatMessage.remove();
+    }
+
+    messagesDeletedCallback(deletedIdsSet) {
+        this.shadowRoot.querySelectorAll("chat-message").forEach(chatMessage => {
+            if (deletedIdsSet.has(chatMessage.dataset.id)) {
+                chatMessage.remove();
+            }
+        });
     }
 }
 

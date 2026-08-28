@@ -1,3 +1,5 @@
+import FetchWrapper from "../../shared/fetch-wrapper.js";
+import { selectedState } from "../../state/messages-select-state.js";
 
 export default class ChatControlBar extends HTMLElement {
     constructor() {
@@ -12,13 +14,20 @@ export default class ChatControlBar extends HTMLElement {
 
         const button = this.shadowRoot.querySelector("button");
 
-        button.addEventListener("click", () => {
-            // send bulk delete
-            // need to access the selected items
-            //
-
-
+        // need to be notified by the selectedState when the selection changes
+        selectedState.registerCallback("selectionChanged", this, () => {
+            button.disabled = selectedState.selected.size === 0;
         });
+
+        selectedState.registerCallback()
+
+        button.addEventListener("click", async () => {
+            await new FetchWrapper("").delete("/messages", [...selectedState.selected]);
+        });
+    }
+
+    disconnectedCallback() {
+        selectedState.removeAllCallbacks();
     }
 }
 
