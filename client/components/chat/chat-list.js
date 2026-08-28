@@ -2,7 +2,7 @@
 // web component for now, may be changed to lit later
 // NOTE: I only want data ids going into components, no prop objects allowed
 
-import * as messageStore from "../../state/messages-state.js";
+import { messagesState } from "../../state/messages-state.js";
 import "./chat-message.js";
 
 export default class ChatList extends HTMLElement {
@@ -17,23 +17,23 @@ export default class ChatList extends HTMLElement {
         // in the future there will be multiple lists, each with their own id
 
         // TODO: refactor to use addEventListener
-        messageStore.registerCallback("messagesReset", this, this.messagesResetCallback);
-        messageStore.registerCallback("messageAdded", this, this.messageAddedCallback);
-        messageStore.registerCallback("messageDeleted", this, this.messageDeletedCallback);
-        messageStore.registerCallback("messagesDeleted", this, this.messagesDeletedCallback);
+        messagesState.registerCallback("messagesReset", this, this.messagesResetCallback);
+        messagesState.registerCallback("messageAdded", this, this.messageAddedCallback);
+        messagesState.registerCallback("messageDeleted", this, this.messageDeletedCallback);
+        messagesState.registerCallback("messagesDeleted", this, this.messagesDeletedCallback);
 
         this.fullRender();
     }
 
     // called by the browser when this is removed from the DOM
     disconnectedCallback() {
-        messageStore.removeAllCallbacks(this);
+        messagesState.removeAllCallbacks(this);
     }
 
     fullRender() {
         // build the full <ul> with all messages
 
-        const messages = messageStore.getMessages();
+        const messages = messagesState.getMessages();
 
         this.shadowRoot.innerHTML = `
             <ul>

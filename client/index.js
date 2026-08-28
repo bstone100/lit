@@ -1,4 +1,4 @@
-import * as messageStore from "./state/messages-state.js";
+import { messagesState } from "./state/messages-state.js";
 import "./components/chat/chat-frame.js";
 import WebSocketWrapper from "./shared/websocket-wrapper.js";
 
@@ -8,7 +8,7 @@ const loadMessages = async () => {
     const response = await fetch("/messages");
     const data = await response.json();
 
-    messageStore.setMessages(data);
+    messagesState.setMessages(data);
 }
 
 const connect = () => {
@@ -26,19 +26,19 @@ const connect = () => {
                 return;
             }
             case "message_created": {
-                messageStore.addMessage(data.body);
+                messagesState.addMessage(data.body);
                 break;
             }
             case "message_updated": {
-                messageStore.updateMessage(data.body.id, data.body);
+                messagesState.updateMessage(data.body.id, data.body);
                 break;
             }
             case "message_deleted": {
-                messageStore.deleteMessage(data.body.id);
+                messagesState.deleteMessage(data.body.id);
                 break;
             }
             case "messages_deleted": {
-                messageStore.deleteMessages(data.body);
+                messagesState.deleteMessages(data.body);
                 break;
             }
         }

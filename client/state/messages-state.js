@@ -2,84 +2,57 @@
 // so it is an array of messages and functions modifying it
 // for now this is just a file, but it may in the future be refactored into a class
 
-let messages = [];
+import CallbackMachine from "./callback-machine.js";
 
-let callbackRegistry = {};
+class MessagesState extends CallbackMachine {
+    #messages = [];
 
-export const registerCallback = (event, caller, callback) => {
-    if (!callbackRegistry[event]) {
-        callbackRegistry[event] = [];
+    setMessages(newMessages) {
+        this.#messages = newMessages;
+        this.executeCallbacks("messagesReset");
     }
-    callbackRegistry[event].push({
-        caller,
-        callback
-    });
-}
 
-const executeCallbacks = (event, ...args) => {
-    callbackRegistry[event].forEach(registeredCallback => {
-        const { caller, callback } = registeredCallback;
-        callback.call(caller, ...args);
-    });
-}
-
-export const removeCallback = (event, caller, callback) => {
-    const index = callbackRegistry[event].findIndex(c => c.caller === caller && c.callback === callback);
-    callbackRegistry[event].splice(index, 1);
-}
-
-export const removeAllCallbacks = caller => {
-    for (const event in callbackRegistry) {
-        callbackRegistry[event] = callbackRegistry[event].filter(c => c.caller !== caller);
+    getMessages() {
+        return this.#messages;
     }
-}
 
-export const setMessages = newMessages => {
-    messages = newMessages;
-    executeCallbacks("messagesReset");
-}
+    getMessage(id) {
+        return this.#messages.find(message => message.id === id);
+    }
 
-export const getMessages = () => {
-    return messages;
-}
+    addMessage(newMessage) {
+        this.#messages.push(newMessage);
+        this.executeCallbacks("messageAdded", newMessage.id);
+    }
 
-export const getMessage = id => {
-    return messages.find(message => message.id === id);
-}
+    updateMessage(id, newMessage) {
+        const index = this.#messages.findIndex(message => message.id === id);
 
-export const addMessage = newMessage => {
-    messages.push(newMessage);
-    executeCallbacks("messageAdded", newMessage.id);
-}
+        if (index !== -1) {
+            this.#messages[index] = newMessage;
+            this.executeCallbacks("messageUpdated", id);
+        }
+    }
 
-export const updateMessage = (id, newMessage) => {
-    const index = messages.findIndex(message => message.id === id);
+    deleteMessage(id) {
+        const index = this.#messages.findIndex(message => message.id === id);
 
-    if (index !== -1) {
-        messages[index] = newMessage;
-        executeCallbacks("messageUpdated", id);
+        if (index !== -1) {
+            this.#messages.splice(index, 1);
+            this.executeCallbacks("messageDeleted", id);
+        }
+    }
+
+    deleteMessages(ids) {
+        const setToDelete = new Set(ids);
+
+        this.#messages = this.#messages.filter(message => !setToDelete.has(message.id));
+
+        this.executeCallbacks("messagesDeleted", setToDelete);
     }
 }
 
-export const deleteMessage = id => {
-    const index = messages.findIndex(message => message.id === id);
-
-    if (index !== -1) {
-        messages.splice(index, 1);
-        executeCallbacks("messageDeleted", id);
-    }
-}
-
-export const deleteMessages = ids => {
-    const setToDelete = new Set(ids);
-
-    messages = messages.filter(message => !setToDelete.has(message.id));
-
-    executeCallbacks("messagesDeleted", setToDelete);
-}
-
-
-
+export const messagesState = new MessagesState;
 
 
 

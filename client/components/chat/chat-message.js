@@ -3,7 +3,7 @@
 // the component should probably just be passed the message id and then seek itself the object from a client store
 // will write component first as a web component and then refactor to lit
 
-import * as messageStore from "../../state/messages-state.js";
+import { messagesState } from "../../state/messages-state.js";
 import FetchWrapper from "../../shared/fetch-wrapper.js"
 import { selectedState } from "../../state/messages-select-state.js";
 
@@ -14,17 +14,17 @@ export default class ChatMessage extends HTMLElement {
     }
 
     connectedCallback() {
-        messageStore.registerCallback("messageUpdated", this, this.messageUpdatedCallback);
+        messagesState.registerCallback("messageUpdated", this, this.messageUpdatedCallback);
 
         this.fullRender();
     }
 
     disconnectedCallback() {
-        messageStore.removeAllCallbacks(this);
+        messagesState.removeAllCallbacks(this);
     }
 
     fullRender() {
-        const message = messageStore.getMessage(this.dataset.id);
+        const message = messagesState.getMessage(this.dataset.id);
 
         // TODO: do this safely, I think this is vulnerable to XSS attack
         this.shadowRoot.innerHTML = `
@@ -62,7 +62,7 @@ export default class ChatMessage extends HTMLElement {
 
         // get the new content and update the <li> directly
 
-        const message = messageStore.getMessage(this.dataset.id);
+        const message = messagesState.getMessage(this.dataset.id);
 
         const li = this.shadowRoot.querySelector("li");
 
