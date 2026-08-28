@@ -38,9 +38,7 @@ export default class ChatList extends HTMLElement {
         this.shadowRoot.innerHTML = `
             <style>
                 li {
-                    border: 3px dotted lightgreen;
-                    border-radius: 5px;
-                    margin: 5px 0;
+                    margin: 10px;
                 }
             </style>
             <ul>

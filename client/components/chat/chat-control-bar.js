@@ -10,9 +10,18 @@ export default class ChatControlBar extends HTMLElement {
 
     connectedCallback() {
         this.shadowRoot.innerHTML = `
-            <button id="selectAll">Select All</button>
-            <button id="deselectAll">Deselect All</button>
-            <button id="deleteSelected">Delete Selected</button>
+            <style>
+                div {
+                    border: 2px dashed lightgrey;
+                    border-radius: 5px;
+                    padding: 5px;
+                }
+            </style>
+            <div>
+                <button id="selectAll">Select All</button>
+                <button id="deselectAll">Deselect All</button>
+                <button id="deleteSelected">Delete Selected</button>
+            </div>
         `;
 
         this.#updateDeleteButtonDisabled();

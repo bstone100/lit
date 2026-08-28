@@ -39,6 +39,8 @@ Steps:
 31. Refactor server and break it down into different files by functionality.
 32. Implement animation such that when a message is deleted, the surrounding messages animate into their new position.
 33. Add a search bar for messages with an efficient algorithm and animations.
+34. Display timestamps for each message.
+35. Start testing with much larger amounts of messages.
 
 Notes:
 - Should write pipeline that runs the integration tests and ensures they pass
