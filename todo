@@ -37,6 +37,8 @@ Steps:
 29. Refactor database into something that supports pagination queries.
 30. Write tests for all new endpoints.
 31. Refactor server and break it down into different files by functionality.
+32. Implement animation such that when a message is deleted, the surrounding messages animate into their new position.
+33. Add a search bar for messages with an efficient algorithm and animations.
 
 Notes:
 - Should write pipeline that runs the integration tests and ensures they pass

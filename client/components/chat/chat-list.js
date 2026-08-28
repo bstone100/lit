@@ -17,10 +17,10 @@ export default class ChatList extends HTMLElement {
         // in the future there will be multiple lists, each with their own id
 
         // TODO: refactor to use addEventListener
-        messagesState.registerCallback("messagesReset", this, this.messagesResetCallback);
-        messagesState.registerCallback("messageAdded", this, this.messageAddedCallback);
-        messagesState.registerCallback("messageDeleted", this, this.messageDeletedCallback);
-        messagesState.registerCallback("messagesDeleted", this, this.messagesDeletedCallback);
+        messagesState.registerCallback("messagesReset", this, this.#messagesResetCallback);
+        messagesState.registerCallback("messageAdded", this, this.#messageAddedCallback);
+        messagesState.registerCallback("messageDeleted", this, this.#messageDeletedCallback);
+        messagesState.registerCallback("messagesDeleted", this, this.#messagesDeletedCallback);
 
         this.fullRender();
     }
@@ -36,41 +36,74 @@ export default class ChatList extends HTMLElement {
         const messages = messagesState.getMessages();
 
         this.shadowRoot.innerHTML = `
+            <style>
+                li {
+                    border: 3px dotted lightgreen;
+                    border-radius: 5px;
+                    margin: 5px 0;
+                }
+            </style>
             <ul>
-                ${messages.map(message => `
-                    <chat-message data-id="${message.id}"></chat-message>
-                `).join("")}
+                ${messages.map(message => this.#makeMessageHTML(message.id)).join("")}
             </ul>
         `;
     }
 
-    messagesResetCallback() {
+    #makeMessageHTML(id) {
+        return `
+            <li data-id="${id}">
+                <chat-message data-id="${id}"></chat-message>
+            </li>
+        `;
+    }
+
+    #messagesResetCallback() {
         this.fullRender();
     }
 
-    messageAddedCallback(id) {
+    #messageAddedCallback(id) {
         // add a new <chat-message> to the end of the <ul>
 
         const ul = this.shadowRoot.querySelector("ul");
 
-        ul.insertAdjacentHTML("beforeend", `
-            <chat-message data-id="${id}"></chat-message>
-        `);
+        ul.insertAdjacentHTML("beforeend", this.#makeMessageHTML(id));
     }
 
-    messageDeletedCallback(id) {
-        // find the <chat-message> and remove it
-
-        const chatMessage = this.shadowRoot.querySelector(`[data-id="${id}"]`);
-
-        chatMessage.remove();
+    #messageDeletedCallback(id) {
+        this.#messagesDeletedCallback(new Set([id]));
     }
 
-    messagesDeletedCallback(deletedIdsSet) {
-        this.shadowRoot.querySelectorAll("chat-message").forEach(chatMessage => {
-            if (deletedIdsSet.has(chatMessage.dataset.id)) {
-                chatMessage.remove();
+    #messagesDeletedCallback(deletedIdsSet) {
+
+        // save rects of all lis
+        const lis = this.shadowRoot.querySelectorAll("li");
+        const rects = new Map;
+        lis.forEach(li => rects.set(li.dataset.id, li.getBoundingClientRect()));
+
+        // remove deleted lis
+        lis.forEach(li => {
+            if (deletedIdsSet.has(li.dataset.id)) {
+                li.remove();
             }
+        });
+
+        // animate remaining lis into their new place
+        lis.forEach(li => {
+            if (deletedIdsSet.has(li.dataset.id)) return;
+
+            const oldRect = rects.get(li.dataset.id);
+            const newRect = li.getBoundingClientRect();
+            const dY = oldRect.y - newRect.y;
+
+            if (dY === 0) return;
+
+            li.animate([
+                {transform: `translateY(${dY}px)`},
+                {transform: "translateY(0)"}
+            ], {
+                duration: 150,
+                easing: "ease-out"
+            });
         });
     }
 }

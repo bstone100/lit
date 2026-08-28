@@ -31,19 +31,9 @@ export default class ChatMessage extends HTMLElement {
         const message = messagesState.getMessage(this.dataset.id);
 
         this.shadowRoot.innerHTML = `
-            <style>
-                li {
-                    border: 3px dotted lightgreen;
-                    border-radius: 5px;
-                    margin: 5px 0;
-                }
-            </style>
-            <li>
-                <!-- create checkbox with correct selected state -->
-                <input type="checkbox" ${selectedState.isSelected(this.dataset.id) ? "checked" : ""}>
-                <span></span>
-                <button>Delete</button>
-            </li>
+            <input type="checkbox" ${selectedState.isSelected(this.dataset.id) ? "checked" : ""}>
+            <span></span>
+            <button>Delete</button>
         `;
 
         this.span.textContent = message.message;
