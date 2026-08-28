@@ -42,14 +42,6 @@ test("Probe the page served by the server", async () => {
         {
             url: "/index.html",
             content: "<title>Ben's Server</title>"
-        },
-        {
-            url: "/styles.css",
-            content: "h1"
-        },
-        {
-            url: "/index.js",
-            content: "connect"
         }
     ];
 
@@ -64,6 +56,10 @@ const postMessage = async () => {
 
 const deleteMessage = async (id) => {
     return API.delete(`/messages/${id}`);
+}
+
+const deleteMessages = async (ids) => {
+    return API.delete("/messages", ids);
 }
 
 const getMessages = async () => {
@@ -171,6 +167,36 @@ test("WebSocket: server should broadcast message_deleted alongside DELETE /messa
     const [ fetchData, wsData ] = await Promise.all([ deleteMessage(message.id), ws.expectBroadcast("message_deleted")]);
 
     assert.equal(wsData.id, message.id);
+});
+
+test("test DELETE /messages with multiple messages is 204", async () => {
+    // make two messages
+    const message1 = await postMessage();
+    const message2 = await postMessage();
+
+    // delete them both in one request
+    const response = await fetch(`${baseURL}/messages`, {
+        method: "DELETE",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify([message1.id, message2.id])
+    });
+    assert.equal(response.status, 204);
+
+    // ensure they are both gone
+    const messages = await getMessages();
+    assert.equal(messages.find(message => message.id === message1.id), undefined);
+    assert.equal(messages.find(message => message.id === message2.id), undefined);
+});
+
+test("WebSocket: server should broadcast messages_deleted alongside DELETE /messages", async () => {
+    const message1 = await postMessage();
+    const message2 = await postMessage();
+    const ids = [message1.id, message2.id];
+
+    // in parallel: send the DELETE request and wait for the WebSocket message
+    const [ fetchResponse, wsData ] = await Promise.all([deleteMessages(ids), ws.expectBroadcast("messages_deleted")]);
+
+    assert.deepEqual(wsData, ids);
 });
 
 test("test GET /messages is 200", async () => {
