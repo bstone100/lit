@@ -41,6 +41,8 @@ Steps:
 33. Add a search bar for messages with an efficient algorithm and animations.
 34. Display timestamps for each message.
 35. Start testing with much larger amounts of messages.
+36. Add ability to create multiple chat servers.
+37. Refactor the app to support there being multiple chat servers.
 
 Notes:
 - Should write pipeline that runs the integration tests and ensures they pass

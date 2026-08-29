@@ -37,6 +37,12 @@ export default class ChatList extends HTMLElement {
 
         this.shadowRoot.innerHTML = `
             <style>
+                ul {
+                    box-sizing: border-box;
+                    height: 200px;
+                    overflow: auto;
+                    border: 1px dotted red;
+                }
                 li {
                     margin: 10px;
                 }
@@ -73,10 +79,21 @@ export default class ChatList extends HTMLElement {
 
     #messagesDeletedCallback(deletedIdsSet) {
 
-        // save rects of all lis
+        // save rects of all lis that are currently visible and not deleted
+        const ul = this.shadowRoot.querySelector("ul");
+        const ulRect = ul.getBoundingClientRect();
         const lis = this.shadowRoot.querySelectorAll("li");
-        const rects = new Map;
-        lis.forEach(li => rects.set(li.dataset.id, li.getBoundingClientRect()));
+        const windowRects = new Map;
+        lis.forEach(li => {
+            if (deletedIdsSet.has(li.dataset.id)) return;
+            const liRect = li.getBoundingClientRect();
+            const shadowTop = ulRect.top - ulRect.height / 2;
+            const shadowBottom = ulRect.bottom + ulRect.height / 2;
+            const isInWindow = liRect.top > shadowTop && liRect.bottom < shadowBottom;
+            if (isInWindow) {
+                windowRects.set(li, liRect);
+            }
+        });
 
         // remove deleted lis
         lis.forEach(li => {
@@ -85,11 +102,8 @@ export default class ChatList extends HTMLElement {
             }
         });
 
-        // animate remaining lis into their new place
-        lis.forEach(li => {
-            if (deletedIdsSet.has(li.dataset.id)) return;
-
-            const oldRect = rects.get(li.dataset.id);
+        // animate the windowed rects into their new pos
+        windowRects.forEach((oldRect, li) => {
             const newRect = li.getBoundingClientRect();
             const dY = oldRect.y - newRect.y;
 
