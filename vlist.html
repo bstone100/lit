@@ -11,7 +11,7 @@
         }
         main {
             border: 1px solid red;
-            height: 300px;
+            height: 200px;
             overflow: auto;
         }
         ul {
@@ -20,7 +20,7 @@
         li {
             border: 1px dotted black;
             position: absolute;
-            height: 30px;
+            height: 100px;
         }
     </style>
 </head>
@@ -30,26 +30,30 @@
         </ul>
     </main>
     <script>
-        const dataArraySize = 100;
+        const dataArraySize = 10;
         const dataArray = [];
         for (let i = 0; i < dataArraySize; i++) {
             dataArray.push(`dataArray[${i}]`);
         }
 
-        const ul = document.querySelector("ul");
+        const windowSizePx = 200;
+        const itemSizePx = 100;
 
-        const windowSizePx = 300;
-        const itemSizePx = 30;
-        const windowSize = 10;
-        const bufferSize = 5;
+        const ul = document.querySelector("ul");
+        ul.style.height = `${itemSizePx * dataArraySize}px`;
+
+        const windowSize = windowSizePx / itemSizePx;
+        const bufferSize = windowSize;
         let windowHead = 0; // index into dataArray
-        let windowTail = 9; // index into dataArray
-        let shadowHead = -5; // index into dataArray
-        let shadowTail = 14; // index into dataArray
-        const DOMArraySize = 20;
+        let windowTail = windowHead + windowSize - 1; // index into dataArray
+        let shadowHead = windowHead - bufferSize; // index into dataArray
+        let shadowTail = windowTail + bufferSize; // index into dataArray
+        const DOMArraySize = windowSize + 2 * bufferSize;
         const DOMArray = [];
         for (let i = 0; i < DOMArraySize; i++) {
             const li = document.createElement("li");
+            li.textContent = dataArray[i];
+            li.style.top = `${itemSizePx * i}px`;
             ul.appendChild(li);
             const dataPointer = i;
             DOMArray[i] = {
@@ -58,13 +62,16 @@
             };
         }
         let DOMHead = 0; // index into DOMArray
-        let DOMTail = 19; // index into DOMArray
+        let DOMTail = DOMArraySize - 1; // index into DOMArray
 
         function onScrollRight() {
             windowHead++;
             windowTail++;
             shadowHead++;
             shadowTail++;
+
+            // this means that we don't need to start shifting lis to the bottom until they are out of the shadow window
+            if (shadowHead <= 0 || shadowTail >= dataArray.length) return;
 
             // this is the core of the algorithm
             DOMArray[DOMHead].dataPointer = DOMArray[DOMTail].dataPointer + 1;
@@ -83,6 +90,8 @@
             shadowHead--;
             shadowTail--;
 
+            if (shadowHead <= 0 || shadowTail >= dataArray.length) return;
+
             DOMArray[DOMTail].dataPointer = DOMArray[DOMHead].dataPointer - 1;
             DOMHead = DOMHead - 1 >= 0 ? DOMHead - 1 : DOMArray.length - 1;
             DOMTail = DOMTail - 1 >= 0 ? DOMTail - 1 : DOMArray.length - 1;
@@ -92,6 +101,35 @@
             // and update its text content
             DOMArray[DOMHead].li.textContent = dataArray[DOMArray[DOMHead].dataPointer];
         }
+
+        let prevIndex = 0;
+        const main = document.querySelector("main");
+
+        function onScroll() {
+            // need to calculate whether to scroll left or right or not at all
+
+            const index = Math.floor(main.scrollTop / itemSizePx);
+            const delta = index - prevIndex;
+            prevIndex = index;
+
+            console.log({scrollTop: main.scrollTop, prevIndex, index, delta});
+
+            if (delta === 0) return;
+
+            if (delta > 0) {
+                for (let i = 0; i < delta; i++) {
+                    onScrollRight();
+                }
+            } else {
+                for (let i = 0; i < Math.abs(delta); i++) {
+                    onScrollLeft();
+                }
+            }
+        }
+
+        main.addEventListener("scroll", onScroll);
+
+
 
 
 
