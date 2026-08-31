@@ -7,88 +7,91 @@
     <style>
         * {
             box-sizing: border-box;
+            margin: 0;
         }
         main {
             border: 1px solid red;
             height: 300px;
             overflow: auto;
         }
+        ul {
+            position: relative
+        }
         li {
             border: 1px dotted black;
+            position: absolute;
+            height: 30px;
         }
     </style>
 </head>
 <body>
     <main>
         <ul>
-            <li>Geronimo Stilton</li>
         </ul>
     </main>
     <script>
-        const dataCount = 10_000;
-        const data = [];
-        for (let i = 0; i < dataCount; i++) {
-            data.push(`data[${i}]`);
+        const dataArraySize = 100;
+        const dataArray = [];
+        for (let i = 0; i < dataArraySize; i++) {
+            dataArray.push(`dataArray[${i}]`);
         }
 
-        const main = document.querySelector("main");
         const ul = document.querySelector("ul");
-        const li = document.querySelector("li");
 
-
-        // let's take the height of one li
-        const liRect = li.getBoundingClientRect();
-        const liHeight = liRect.height;
-
-        // let's calculate what the height of the scrollable area should be
-        const scrollableHeight = data.length * liHeight;
-
-        // we need to trick the page into showing the correct scroll bar
-        // so let's directly set the height of the ul
-        ul.style.height = `${scrollableHeight}px`;
-
-        // let's now make a pool of lis that we will reuse
-        const mainRect = main.getBoundingClientRect();
-        const mainHeight = mainRect.height;
-        const poolSize = Math.floor(mainHeight / liHeight) * 3 - 2;
-        const poolLis = [];
-        for (let i = 0; i < poolSize; i++) {
+        const windowSizePx = 300;
+        const itemSizePx = 30;
+        const windowSize = 10;
+        const bufferSize = 5;
+        let windowHead = 0; // index into dataArray
+        let windowTail = 9; // index into dataArray
+        let shadowHead = -5; // index into dataArray
+        let shadowTail = 14; // index into dataArray
+        const DOMArraySize = 20;
+        const DOMArray = [];
+        for (let i = 0; i < DOMArraySize; i++) {
             const li = document.createElement("li");
             ul.appendChild(li);
-            poolLis.push(li);
+            const dataPointer = i;
+            DOMArray[i] = {
+                li,
+                dataPointer // index into dataArray
+            };
+        }
+        let DOMHead = 0; // index into DOMArray
+        let DOMTail = 19; // index into DOMArray
+
+        function onScrollRight() {
+            windowHead++;
+            windowTail++;
+            shadowHead++;
+            shadowTail++;
+
+            // this is the core of the algorithm
+            DOMArray[DOMHead].dataPointer = DOMArray[DOMTail].dataPointer + 1;
+            DOMHead = (DOMHead + 1) % DOMArray.length;
+            DOMTail = (DOMTail + 1) % DOMArray.length;
+
+            // we need to now take the li at DOMTail and relocate its on-screen position to the bottom
+            DOMArray[DOMTail].li.style.top = `${itemSizePx * DOMArray[DOMTail].dataPointer}px`;
+            // and update its text content
+            DOMArray[DOMTail].li.textContent = dataArray[DOMArray[DOMTail].dataPointer];
         }
 
-        // now let's handle the scroll event
-        main.addEventListener("scroll", () => {
-            // let's maintain the balance of lis such that there is an equal number of them above and below the visible window
+        function onScrollLeft() {
+            windowHead--;
+            windowTail--;
+            shadowHead--;
+            shadowTail--;
 
-            // there should be poolSize / 3 lis visible, poolSize / 3 above, and poolSize / 3 below
-            // except when we're at the top or the bottom of the list
+            DOMArray[DOMTail].dataPointer = DOMArray[DOMHead].dataPointer - 1;
+            DOMHead = DOMHead - 1 >= 0 ? DOMHead - 1 : DOMArray.length - 1;
+            DOMTail = DOMTail - 1 >= 0 ? DOMTail - 1 : DOMArray.length - 1;
 
-            // when lis go north of the north shadow then we should move them to the south
-            // when lis go south of the south shadow then we should move them to the north
-
-            // let's list the relevant y-axis positions that we will need
-            // top of computer screen is y = 0
-            const mainTop = mainRect.top;
-            const mainBottom = mainRect.bottom;
-            const northShadowTop = mainRect.top - mainRect.height;
-            const southShadowBottom = mainRect.bottom + mainRect.height;
-
-            // let's check here if a li is north of the north shadow
-            poolLis.forEach(li => {
-                const liRect = li.getBoundingClientRect();
-                if (liRect.bottom < northShadowTop) {
-                    // the li is north of the north shadow
-                    // let's move this li to the far south
-                    li.remove();
-                    ul.appendChild(li);
-                }
-            });
-
-
-
-        });
+            // take the li at DOMHead and relocate its on-screen position to the top
+            DOMArray[DOMHead].li.style.top = `${itemSizePx * DOMArray[DOMHead].dataPointer}px`;
+            // and update its text content
+            DOMArray[DOMHead].li.textContent = dataArray[DOMArray[DOMHead].dataPointer];
+        }
 
 
 
