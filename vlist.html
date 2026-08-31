@@ -44,62 +44,67 @@
 
         const windowSize = windowSizePx / itemSizePx;
         const bufferSize = windowSize;
-        let windowHead = 0; // index into dataArray
-        let windowTail = windowHead + windowSize - 1; // index into dataArray
-        let shadowHead = windowHead - bufferSize; // index into dataArray
-        let shadowTail = windowTail + bufferSize; // index into dataArray
         const DOMArraySize = windowSize + 2 * bufferSize;
         const DOMArray = [];
-        for (let i = 0; i < DOMArraySize; i++) {
-            const li = document.createElement("li");
-            li.textContent = dataArray[i];
-            li.style.top = `${itemSizePx * i}px`;
-            ul.appendChild(li);
-            const dataPointer = i;
-            DOMArray[i] = {
-                li,
-                dataPointer // index into dataArray
-            };
+
+        function styleLi(DOMArrayIndex) {
+            const { li, dataPointer } = DOMArray.at(DOMArrayIndex);
+            if (dataPointer < 0 || dataPointer >= dataArraySize) {
+                li.style.display = "none";
+            } else {
+                li.style.display = "";
+                li.textContent = dataArray[dataPointer];
+                li.style.top = `${itemSizePx * dataPointer}px`;
+            }
         }
+
+        for (let i = -bufferSize; i < windowSize + bufferSize; i++) {
+            const li = document.createElement("li");
+            const dataPointer = i;
+            ul.appendChild(li);
+            DOMArray.push({
+                li,
+                dataPointer
+            });
+            styleLi(-1);
+        }
+
         let DOMHead = 0; // index into DOMArray
-        let DOMTail = DOMArraySize - 1; // index into DOMArray
 
         function onScrollRight() {
-            windowHead++;
-            windowTail++;
-            shadowHead++;
-            shadowTail++;
 
-            // this means that we don't need to start shifting lis to the bottom until they are out of the shadow window
-            if (shadowHead <= 0 || shadowTail >= dataArray.length) return;
-
-            // this is the core of the algorithm
-            DOMArray[DOMHead].dataPointer = DOMArray[DOMTail].dataPointer + 1;
+            // core algo
+            DOMArray[DOMHead].dataPointer = DOMArray.at(DOMHead - 1).dataPointer + 1;
+            styleLi(DOMHead);
             DOMHead = (DOMHead + 1) % DOMArray.length;
-            DOMTail = (DOMTail + 1) % DOMArray.length;
 
-            // we need to now take the li at DOMTail and relocate its on-screen position to the bottom
-            DOMArray[DOMTail].li.style.top = `${itemSizePx * DOMArray[DOMTail].dataPointer}px`;
-            // and update its text content
-            DOMArray[DOMTail].li.textContent = dataArray[DOMArray[DOMTail].dataPointer];
+
+            // // this is the core of the algorithm
+            // DOMArray[DOMHead].dataPointer = DOMArray[DOMTail].dataPointer + 1;
+            // DOMHead = (DOMHead + 1) % DOMArray.length;
+            // DOMTail = (DOMTail + 1) % DOMArray.length;
+            //
+            // // we need to now take the li at DOMTail and relocate its on-screen position to the bottom
+            // DOMArray[DOMTail].li.style.top = `${itemSizePx * DOMArray[DOMTail].dataPointer}px`;
+            // // and update its text content
+            // DOMArray[DOMTail].li.textContent = dataArray[DOMArray[DOMTail].dataPointer];
         }
 
         function onScrollLeft() {
-            windowHead--;
-            windowTail--;
-            shadowHead--;
-            shadowTail--;
 
-            if (shadowHead <= 0 || shadowTail >= dataArray.length) return;
-
-            DOMArray[DOMTail].dataPointer = DOMArray[DOMHead].dataPointer - 1;
+            // core algo
+            DOMArray.at(DOMHead - 1).dataPointer = DOMArray[DOMHead].dataPointer - 1;
+            styleLi(DOMHead - 1);
             DOMHead = DOMHead - 1 >= 0 ? DOMHead - 1 : DOMArray.length - 1;
-            DOMTail = DOMTail - 1 >= 0 ? DOMTail - 1 : DOMArray.length - 1;
 
-            // take the li at DOMHead and relocate its on-screen position to the top
-            DOMArray[DOMHead].li.style.top = `${itemSizePx * DOMArray[DOMHead].dataPointer}px`;
-            // and update its text content
-            DOMArray[DOMHead].li.textContent = dataArray[DOMArray[DOMHead].dataPointer];
+            // DOMArray[DOMTail].dataPointer = DOMArray[DOMHead].dataPointer - 1;
+            // DOMHead = DOMHead - 1 >= 0 ? DOMHead - 1 : DOMArray.length - 1;
+            // DOMTail = DOMTail - 1 >= 0 ? DOMTail - 1 : DOMArray.length - 1;
+            //
+            // // take the li at DOMHead and relocate its on-screen position to the top
+            // DOMArray[DOMHead].li.style.top = `${itemSizePx * DOMArray[DOMHead].dataPointer}px`;
+            // // and update its text content
+            // DOMArray[DOMHead].li.textContent = dataArray[DOMArray[DOMHead].dataPointer];
         }
 
         let prevIndex = 0;
