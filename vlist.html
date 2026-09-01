@@ -30,7 +30,10 @@
         </ul>
     </main>
     <script>
-        const dataArraySize = 10;
+        // TODO: bug, when data is 1,000,000, can only scroll to 167,772, perhaps ul height can't be set that high
+
+
+        const dataArraySize = 10000;
         const dataArray = [];
         for (let i = 0; i < dataArraySize; i++) {
             dataArray.push(`dataArray[${i}]`);
@@ -44,7 +47,6 @@
 
         const windowSize = windowSizePx / itemSizePx;
         const bufferSize = windowSize;
-        const DOMArraySize = windowSize + 2 * bufferSize;
         const DOMArray = [];
 
         function styleLi(DOMArrayIndex) {
@@ -54,7 +56,7 @@
             } else {
                 li.style.display = "";
                 li.textContent = dataArray[dataPointer];
-                li.style.top = `${itemSizePx * dataPointer}px`;
+                li.style.transform = `translateY(${itemSizePx * dataPointer}px)`;
             }
         }
 
@@ -72,54 +74,50 @@
         let DOMHead = 0; // index into DOMArray
 
         function onScrollRight() {
-
             // core algo
             DOMArray[DOMHead].dataPointer = DOMArray.at(DOMHead - 1).dataPointer + 1;
             styleLi(DOMHead);
             DOMHead = (DOMHead + 1) % DOMArray.length;
-
-
-            // // this is the core of the algorithm
-            // DOMArray[DOMHead].dataPointer = DOMArray[DOMTail].dataPointer + 1;
-            // DOMHead = (DOMHead + 1) % DOMArray.length;
-            // DOMTail = (DOMTail + 1) % DOMArray.length;
-            //
-            // // we need to now take the li at DOMTail and relocate its on-screen position to the bottom
-            // DOMArray[DOMTail].li.style.top = `${itemSizePx * DOMArray[DOMTail].dataPointer}px`;
-            // // and update its text content
-            // DOMArray[DOMTail].li.textContent = dataArray[DOMArray[DOMTail].dataPointer];
         }
 
         function onScrollLeft() {
-
             // core algo
             DOMArray.at(DOMHead - 1).dataPointer = DOMArray[DOMHead].dataPointer - 1;
             styleLi(DOMHead - 1);
             DOMHead = DOMHead - 1 >= 0 ? DOMHead - 1 : DOMArray.length - 1;
-
-            // DOMArray[DOMTail].dataPointer = DOMArray[DOMHead].dataPointer - 1;
-            // DOMHead = DOMHead - 1 >= 0 ? DOMHead - 1 : DOMArray.length - 1;
-            // DOMTail = DOMTail - 1 >= 0 ? DOMTail - 1 : DOMArray.length - 1;
-            //
-            // // take the li at DOMHead and relocate its on-screen position to the top
-            // DOMArray[DOMHead].li.style.top = `${itemSizePx * DOMArray[DOMHead].dataPointer}px`;
-            // // and update its text content
-            // DOMArray[DOMHead].li.textContent = dataArray[DOMArray[DOMHead].dataPointer];
         }
 
         let prevIndex = 0;
+        let prevScroll = 0;
         const main = document.querySelector("main");
 
         function onScroll() {
             // need to calculate whether to scroll left or right or not at all
 
+            // console.log({scrollDelta: main.scrollTop - prevScroll});
+            prevScroll = main.scrollTop;
+
             const index = Math.floor(main.scrollTop / itemSizePx);
             const delta = index - prevIndex;
             prevIndex = index;
 
-            console.log({scrollTop: main.scrollTop, prevIndex, index, delta});
+            console.log({delta, fullWindow: windowSize + bufferSize * 2});
+
+
 
             if (delta === 0) return;
+
+            // the delta can get very large depending on the scroll speed, this makes the for loops O(dataArraySize)
+            // to reset the window plus buffers takes window + buffer * 2 operations
+            // so only reset the window if delta > window + buffer * 2
+            if (Math.abs(delta) > windowSize + bufferSize * 2) {
+                for (let DOMArrayIndex = 0, dataIndex = index - bufferSize; DOMArrayIndex < DOMArray.length; DOMArrayIndex++, dataIndex++) {
+                    DOMArray[DOMArrayIndex].dataPointer = dataIndex;
+                    styleLi(DOMArrayIndex);
+                }
+                DOMHead = 0;
+                return;
+            }
 
             if (delta > 0) {
                 for (let i = 0; i < delta; i++) {
@@ -133,9 +131,6 @@
         }
 
         main.addEventListener("scroll", onScroll);
-
-
-
 
 
     </script>
